@@ -161,6 +161,13 @@ public protocol DateTimePickerDelegate: class {
         }
     }
     
+    /// whether to show title view, default to false
+    public var isHiddenTitleView = false {
+        didSet {
+            configureView()
+        }
+    }
+    
     /// Time interval, in minutes, default to 1.
     /// If not default, infinite scrolling is off.
     public var timeInterval = MinuteInterval.default {
@@ -311,7 +318,11 @@ public protocol DateTimePickerDelegate: class {
         titleView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         titleView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
         titleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
-        titleView.heightAnchor.constraint(equalToConstant: 44).isActive = true
+	if isHiddenTitleView {
+            titleView.heightAnchor.constraint(equalToConstant: 0).isActive = true
+        } else {
+            titleView.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        }
         titleView.layoutMargins = UIEdgeInsets.init(top: 0, left: 20, bottom: 0, right: 20)
         
         dateTitleLabel = UILabel(frame: CGRect.zero)
