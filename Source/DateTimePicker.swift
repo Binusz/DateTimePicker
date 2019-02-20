@@ -288,6 +288,7 @@ public protocol DateTimePickerDelegate: class {
         }
         
         contentHeight = isDatePickerOnly ? 228 : isTimePickerOnly ? 230 : 330
+	contentHeight = isHiddenTitleView ? contentHeight - 44 : contentHeight
         if let window = UIApplication.shared.keyWindow {
             self.frame.size.width = window.bounds.size.width
         }
