@@ -231,8 +231,6 @@ public protocol DateTimePickerDelegate: class {
             let shadowView = UIView()
             shadowView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
             shadowView.alpha = 1
-            let shadowViewTap = UITapGestureRecognizer(target: self, action: #selector(DateTimePicker.dismissView(sender:)))
-            shadowView.addGestureRecognizer(shadowViewTap)
             window.addSubview(shadowView)
             
             shadowView.translatesAutoresizingMaskIntoConstraints = false
@@ -262,6 +260,7 @@ public protocol DateTimePickerDelegate: class {
                 contentViewBottomConstraint.constant = self.contentHeight
                 UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.8, options: .curveLinear, animations: {
                     // animate to hide pickerView
+		    shadowView.alpha = 0
                     self.layoutIfNeeded()
                 }, completion: { (completed) in
                     self.removeFromSuperview()
@@ -278,6 +277,14 @@ public protocol DateTimePickerDelegate: class {
         }
         
         self.resetTime()
+    }
+	
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let touch = touches.first
+        guard let location = touch?.location(in: self) else { return }
+        if !contentView.frame.contains(location) {
+            dismissView(sender: nil)
+        }
     }
     
     private func configureView() {
@@ -337,10 +344,12 @@ public protocol DateTimePickerDelegate: class {
         dateTitleLabel.centerYAnchor.constraint(equalTo: titleView.centerYAnchor).isActive = true
         dateTitleLabel.centerXAnchor.constraint(equalTo: titleView.centerXAnchor).isActive = true
         
+	let isRTL = UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft
+
         cancelButton = UIButton(type: .system)
         cancelButton.setTitle(cancelButtonTitle, for: .normal)
         cancelButton.setTitleColor(darkColor.withAlphaComponent(0.5), for: .normal)
-        cancelButton.contentHorizontalAlignment = .left
+        cancelButton.contentHorizontalAlignment = isRTL ? .right : .left
         cancelButton.addTarget(self, action: #selector(DateTimePicker.dismissView(sender:)), for: .touchUpInside)
         cancelButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 15)
         titleView.addSubview(cancelButton)
@@ -355,7 +364,7 @@ public protocol DateTimePickerDelegate: class {
         todayButton.setTitle(todayButtonTitle, for: .normal)
         todayButton.setTitleColor(highlightColor, for: .normal)
         todayButton.addTarget(self, action: #selector(DateTimePicker.setToday), for: .touchUpInside)
-        todayButton.contentHorizontalAlignment = .right
+        todayButton.contentHorizontalAlignment = isRTL ? .left : .right
         todayButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 15)
         todayButton.isHidden = self.minimumDate.compare(Date()) == .orderedDescending || self.maximumDate.compare(Date()) == .orderedAscending
         titleView.addSubview(todayButton)
@@ -642,7 +651,7 @@ public protocol DateTimePickerDelegate: class {
         self.dates = dates
         dayCollectionView.reloadData()
         
-        if let index = self.dates.index(of: selectedDate) {
+        if let index = self.dates.firstIndex(of: selectedDate) {
             dayCollectionView.selectItem(at: IndexPath(row: index, section: 0), animated: true, scrollPosition: .centeredHorizontally)
         }
     }
